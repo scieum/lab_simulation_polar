@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lab:Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            touch-action: pan-y;
+            background-color: #f8fafc;
+            color: #334155;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        canvas {
+            border-radius: 20px;
+            background: #ffffff;
+            touch-action: none;
+            cursor: grab;
+            display: block;
+        }
+        canvas:active { cursor: grabbing; }
+
+        .clean-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .select-radio:checked + div {
+            background: #f1f5f9;
+            border-color: #64748b;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .select-radio:checked + div .label-text { color: #0f172a; font-weight: 800; }
+        .select-radio:checked + div .indicator { transform: scale(1.1); }
+        
+        .btn-press { transition: transform 0.1s; }
+        .btn-press:active { transform: scale(0.97); }
+
+        .hidden-screen { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .menu-card { transition: all 0.3s ease; }
+        .menu-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .menu-card:active { transform: scale(0.98); }
+
+        .draggable-item {
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            transition: transform 0.1s, box-shadow 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            min-width: 80px;
+            z-index: 10;
+        }
+        .draggable-item.dragging {
+            opacity: 0.8;
+            transform: scale(1.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .draggable-item.placeholder {
+            opacity: 0.3;
+            background: #e2e8f0;
+            border: 1px dashed #94a3b8;
+        }
+
+        .drop-zone { transition: all 0.3s ease; }
+        .drop-zone.drag-over {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            transform: scale(1.01);
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <!-- ==================== MAIN MENU ==================== -->
+    <div id="main-menu" class="min-h-screen flex flex-col items-center p-6 fade-in">
+        <div class="flex-1 flex flex-col items-center justify-center w-full max-w-5xl">
+            <div class="text-center mb-12">
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-[0.2em] mb-2 block">Virtual Science Lab</span>
+                <h1 class="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-tight">Lab:Simulation</h1>
+                <p class="text-slate-500 mt-4 text-base md:text-lg">가상 실험실에 오신 것을 환영합니다.<br>원하는 실험 주제를 선택하세요.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                <!-- Lab 1 Card -->
+                <button onclick="navigateTo('lab1')" class="menu-card bg-white rounded-3xl p-8 border border-slate-200 text-left group relative overflow-hidden h-72 flex flex-col justify-between">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="relative z-10">
+                        <span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full mb-4">Physics / Chemistry</span>
+                        <h2 class="text-2xl font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">Lab 1. 대전체와 액체</h2>
+                        <p class="text-slate-500 text-sm leading-relaxed">정전기 유도 현상으로 인해 휘어지는 액체 줄기를 관찰합니다.</p>
+                    </div>
+                    <div class="relative z-10 flex items-center gap-2 text-slate-400 font-bold text-sm group-hover:text-blue-600 transition-colors">
+                        <span>실험 시작하기</span>
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    </div>
+                </button>
+
+                <!-- Lab 2 Card -->
+                <button onclick="navigateTo('lab2')" class="menu-card bg-white rounded-3xl p-8 border border-slate-200 text-left group relative overflow-hidden h-72 flex flex-col justify-between">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="relative z-10">
+                        <span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full mb-4">Chemistry</span>
+                        <h2 class="text-2xl font-bold text-slate-800 mb-2 group-hover:text-emerald-600 transition-colors">Lab 2. 용해성 실험</h2>
+                        <p class="text-slate-500 text-sm leading-relaxed">극성/무극성 용매와 용질의 섞임 현상과 밀도 차이를 실험합니다.</p>
+                    </div>
+                    <div class="relative z-10 flex items-center gap-2 text-slate-400 font-bold text-sm group-hover:text-emerald-600 transition-colors">
+                        <span>실험 시작하기</span>
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <footer class="w-full flex items-center justify-center gap-2 mt-12 mb-6 text-slate-400 text-xs font-medium">
+            <span>© 2025 사이음(sci_eum). 과학의 사이, 사람을 잇다.</span>
+            <a href="https://knuechem13.notion.site/ebd/2ba137a305b880fbac23d7b204098e51" target="_blank" class="hover:opacity-80 transition-opacity" title="노션 페이지 바로가기">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e9/Notion-logo.svg" alt="Notion" class="w-4 h-4 opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0">
+            </a>
+        </footer>
+    </div>
+
+
+    <!-- ==================== LAB 1: 대전체 ==================== -->
+    <div id="lab1-container" class="hidden-screen min-h-screen flex flex-col items-center justify-center p-4">
+        <!-- Common Header -->
+        <div class="w-full max-w-6xl mb-4 flex justify-start">
+            <button onclick="navigateTo('home')" class="btn-press flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm text-slate-500 hover:text-slate-800 font-bold text-xs transition-colors border border-slate-200">
+                ← Home
+            </button>
+        </div>
+
+        <!-- LAB 1: Simulation View -->
+        <div id="lab1-sim-view" class="flex flex-col md:flex-row gap-6 w-full max-w-6xl items-stretch justify-center h-full fade-in">
+            <div class="relative w-full md:flex-[1.6] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-center items-center min-h-[600px]" id="lab1-canvas-wrap">
+                <canvas id="simCanvas"></canvas>
+                <div id="lab1-overlay" class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-500">
+                    <div class="bg-slate-800/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-3 animate-bounce-slow">
+                        <span class="font-medium text-sm">대전체를 드래그하여 물줄기에 가까이 대보세요</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full md:flex-1 md:max-w-[380px] flex flex-col gap-4">
+                <div class="clean-panel p-5 flex flex-col gap-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lab 1</span>
+                            <h1 class="text-xl font-extrabold text-slate-800">대전체 상호작용</h1>
+                        </div>
+                        <button id="refillBtn" class="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold border border-slate-200 transition-colors shadow-sm">초기화</button>
+                    </div>
+                    <div class="flex items-center justify-between bg-slate-50 rounded-lg p-3 border border-slate-100">
+                        <span class="text-slate-500 text-xs font-bold">뷰렛 잔량</span>
+                        <div class="flex items-baseline gap-1">
+                            <span id="volDisplay" class="text-2xl font-mono font-bold text-slate-700 tracking-tighter">50.0</span>
+                            <span class="text-xs text-slate-400 font-bold">mL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="clean-panel p-5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 block">Charged Object</label>
+                    <div class="grid grid-cols-3 gap-3 h-32">
+                        <label class="cursor-pointer group relative h-full"><input type="radio" name="objectSelect" value="balloon" checked class="select-radio sr-only"><div class="h-full p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex flex-col justify-center items-center gap-2"><div class="flex-1 flex items-center justify-center"><div class="w-8 h-8 rounded-full bg-pink-400 indicator shadow-sm"></div></div><div class="w-full flex flex-col items-center gap-1 pb-1"><div class="text-xs font-bold text-slate-600 label-text leading-tight">풍선</div><div class="text-[10px] text-pink-500 font-medium leading-tight bg-pink-50 px-2 py-0.5 rounded-full">(-)전하</div></div></div></label>
+                        <label class="cursor-pointer group relative h-full"><input type="radio" name="objectSelect" value="glass" class="select-radio sr-only"><div class="h-full p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex flex-col justify-center items-center gap-2"><div class="flex-1 flex items-center justify-center"><div class="w-10 h-2 rounded-full bg-blue-100 border border-slate-300 transform -rotate-45 indicator"></div></div><div class="w-full flex flex-col items-center gap-1 pb-1"><div class="text-xs font-bold text-slate-600 label-text leading-tight">유리막대</div><div class="text-[10px] text-blue-500 font-medium leading-tight bg-blue-50 px-2 py-0.5 rounded-full">(+)전하</div></div></div></label>
+                        <label class="cursor-pointer group relative h-full"><input type="radio" name="objectSelect" value="ebonite" class="select-radio sr-only"><div class="h-full p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex flex-col justify-center items-center gap-2"><div class="flex-1 flex items-center justify-center"><div class="w-10 h-2 rounded-full bg-slate-600 transform -rotate-45 indicator"></div></div><div class="w-full flex flex-col items-center gap-1 pb-1"><div class="text-xs font-bold text-slate-600 label-text leading-tight">에보나이트</div><div class="text-[10px] text-slate-500 font-medium leading-tight bg-slate-100 px-2 py-0.5 rounded-full">(-)전하</div></div></div></label>
+                    </div>
+                </div>
+
+                <div class="clean-panel p-5 flex flex-col gap-4 grow">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Liquid Type</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="cursor-pointer group relative"><input type="radio" name="liquidSelect" value="water" checked class="select-radio sr-only"><div class="h-full p-3 rounded-lg border border-slate-200 hover:border-slate-300 flex items-center gap-3"><div class="w-2.5 h-2.5 shrink-0 rounded-full bg-blue-400 indicator"></div><div class="text-xs text-slate-500 label-text leading-snug">물<br><span class="text-[10px] text-slate-400 font-normal">(H₂O)</span></div></div></label>
+                            <label class="cursor-pointer group relative"><input type="radio" name="liquidSelect" value="ethanol" class="select-radio sr-only"><div class="h-full p-3 rounded-lg border border-slate-200 hover:border-slate-300 flex items-center gap-3"><div class="w-2.5 h-2.5 shrink-0 rounded-full bg-indigo-400 indicator"></div><div class="text-xs text-slate-500 label-text leading-snug">에탄올<br><span class="text-[10px] text-slate-400 font-normal">(C₂H₅OH)</span></div></div></label>
+                            <label class="cursor-pointer group relative"><input type="radio" name="liquidSelect" value="hexane" class="select-radio sr-only"><div class="h-full p-3 rounded-lg border border-slate-200 hover:border-slate-300 flex items-center gap-3"><div class="w-2.5 h-2.5 shrink-0 rounded-full bg-slate-400 indicator"></div><div class="text-xs text-slate-500 label-text leading-snug">헥세인<br><span class="text-[10px] text-slate-400 font-normal">(C₆H₁₄)</span></div></div></label>
+                            <label class="cursor-pointer group relative"><input type="radio" name="liquidSelect" value="ccl4" class="select-radio sr-only"><div class="h-full p-3 rounded-lg border border-slate-200 hover:border-slate-300 flex items-center gap-3"><div class="w-2.5 h-2.5 shrink-0 rounded-full bg-slate-500 indicator"></div><div class="text-xs text-slate-500 label-text leading-snug">사염화탄소<br><span class="text-[10px] text-slate-400 font-normal">(CCl₄)</span></div></div></label>
+                        </div>
+                    </div>
+                    <div class="mt-auto flex flex-col gap-2">
+                        <button id="flowToggleBtn" class="btn-press w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm tracking-wide shadow-lg shadow-slate-200 flex items-center justify-center gap-2 group relative overflow-hidden transition-all"><div class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div><span class="relative">실험 시작 (Start)</span></button>
+                        <button onclick="toggleLab1View('quiz')" class="btn-press w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm tracking-wide shadow-lg shadow-blue-200 flex items-center justify-center gap-2 transition-all mt-2">
+                            <span>다음 단계: 분류 퀴즈 풀기</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAB 1: Quiz View -->
+        <div id="lab1-quiz-view" class="hidden-screen w-full max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 p-8 flex-col items-center justify-center gap-10 fade-in min-h-[600px]">
+            <div class="text-center w-full">
+                <h2 class="text-3xl font-extrabold text-slate-800">극성 vs 무극성 분류하기</h2>
+                <p class="text-slate-500 mt-2 text-sm mb-2">실험 결과를 바탕으로 아래 물질들을 올바른 상자에 넣어보세요.</p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-6 w-full justify-center items-stretch min-h-[250px]">
+                <div id="polar-zone" class="drop-zone flex-1 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-start p-6 relative transition-colors">
+                    <div class="text-lg font-extrabold text-slate-700 mb-1">극성 물질</div>
+                    <div class="text-xs text-slate-400 mb-6 font-medium">(전기장에 끌려옴)</div>
+                    <div class="item-container flex flex-wrap gap-3 justify-center content-start w-full min-h-[100px]"></div>
+                </div>
+                <div id="nonpolar-zone" class="drop-zone flex-1 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-start p-6 relative transition-colors">
+                    <div class="text-lg font-extrabold text-slate-700 mb-1">무극성 물질</div>
+                    <div class="text-xs text-slate-400 mb-6 font-medium">(반응 없음)</div>
+                    <div class="item-container flex flex-wrap gap-3 justify-center content-start w-full min-h-[100px]"></div>
+                </div>
+            </div>
+            <div class="w-full bg-slate-100 rounded-xl p-6 min-h-[120px] flex flex-col justify-center items-center text-center">
+                <div class="text-xs font-bold text-slate-400 mb-6 tracking-wide uppercase">Draggable Items (드래그하여 분류하세요)</div>
+                <div id="lab1-item-source" class="flex flex-wrap gap-3 justify-center items-center w-full min-h-[50px]"></div>
+            </div>
+            <div id="lab1-result-message" class="hidden w-fit mx-auto px-8 py-3 rounded-xl text-center text-sm font-bold animate-pulse shadow-sm transition-all whitespace-nowrap"></div>
+            <div class="flex gap-4 w-full max-w-md pt-2 justify-center mx-auto">
+                <button onclick="toggleLab1View('sim')" class="px-8 py-3.5 rounded-xl border border-slate-300 text-slate-600 font-bold hover:bg-slate-50 transition-colors text-sm w-auto shadow-sm min-w-[140px] flex justify-center items-center">
+                    다시 실험하기
+                </button>
+                <button id="lab1-checkAnswerBtn" class="px-10 py-3.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-colors text-sm w-auto min-w-[140px] flex justify-center items-center">
+                    정답 확인
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== LAB 2: 용해성 ==================== -->
+    <div id="lab2-container" class="hidden-screen min-h-screen flex flex-col items-center justify-center p-4">
+        <!-- Home Button -->
+        <div class="w-full max-w-6xl mb-4 flex justify-start">
+            <button onclick="navigateTo('home')" class="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm text-slate-500 hover:text-slate-800 font-bold text-xs transition-colors border border-slate-200">
+                ← Home
+            </button>
+        </div>
+
+        <div id="lab2-sim-view" class="flex flex-col md:flex-row gap-6 w-full max-w-6xl items-stretch justify-center h-full fade-in">
+            <div class="relative w-full md:flex-[1.6] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-center items-center min-h-[600px]" id="lab2-canvas-wrap">
+                <canvas id="mixCanvas"></canvas>
+            </div>
+
+            <div class="w-full md:flex-1 md:max-w-[380px] flex flex-col gap-4 overflow-y-auto">
+                <div class="clean-panel p-5 flex flex-col gap-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Lab 2</span>
+                            <h1 class="text-xl font-extrabold text-slate-800">극성과 용해성</h1>
+                        </div>
+                        <button id="lab2-reset" class="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold border border-slate-200 transition-colors shadow-sm">초기화</button>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">용매에 용질을 부어 섞임(균일) 또는 층 분리(불균일) 현상을 확인하세요.</p>
+                </div>
+
+                <!-- 1. 용매 선택 -->
+                <div class="clean-panel p-5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 block">1. Solvent (용매)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer group relative">
+                            <input type="radio" name="solventSelect" value="water" checked class="l2-solv-radio select-radio sr-only">
+                            <div class="h-full p-3 rounded-lg border border-slate-200 hover:border-slate-800 flex flex-col items-center gap-1 transition-all">
+                                <div class="w-2.5 h-2.5 rounded-full bg-blue-300 mb-1 indicator"></div>
+                                <div class="text-xs font-bold text-slate-600 label-text">물 (극성)</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer group relative">
+                            <input type="radio" name="solventSelect" value="hexane" class="l2-solv-radio select-radio sr-only">
+                            <div class="h-full p-3 rounded-lg border border-slate-200 hover:border-slate-800 flex flex-col items-center gap-1 transition-all">
+                                <div class="w-2.5 h-2.5 rounded-full bg-slate-300 mb-1 indicator"></div>
+                                <div class="text-xs font-bold text-slate-600 label-text">헥세인 (무극성)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 2. 액체 용질 선택 -->
+                <div class="clean-panel p-5" id="liquid-solute-panel">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 block">2. Solute (액체 용질)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer group relative"><input type="radio" name="soluteSelect" value="water" class="l2-solu-radio select-radio sr-only"><div class="h-full p-2.5 rounded-lg border border-slate-200 hover:border-slate-800 flex items-center justify-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-300 indicator"></div><div class="text-xs text-slate-500 font-bold label-text">물</div></div></label>
+                        <label class="cursor-pointer group relative"><input type="radio" name="soluteSelect" value="ethanol" checked class="l2-solu-radio select-radio sr-only"><div class="h-full p-2.5 rounded-lg border border-slate-200 hover:border-slate-800 flex items-center justify-center gap-2"><div class="w-2 h-2 rounded-full bg-indigo-300 indicator"></div><div class="text-xs text-slate-500 font-bold label-text">에탄올</div></div></label>
+                        <label class="cursor-pointer group relative"><input type="radio" name="soluteSelect" value="hexane" class="l2-solu-radio select-radio sr-only"><div class="h-full p-2.5 rounded-lg border border-slate-200 hover:border-slate-800 flex items-center justify-center gap-2"><div class="w-2 h-2 rounded-full bg-slate-300 indicator"></div><div class="text-xs text-slate-500 font-bold label-text">헥세인</div></div></label>
+                        <label class="cursor-pointer group relative"><input type="radio" name="soluteSelect" value="ccl4" class="l2-solu-radio select-radio sr-only"><div class="h-full p-2.5 rounded-lg border border-slate-200 hover:border-slate-800 flex items-center justify-center gap-2"><div class="w-2 h-2 rounded-full bg-slate-500 indicator"></div><div class="text-xs text-slate-500 font-bold label-text">사염화탄소</div></div></label>
+                    </div>
+                </div>
+
+                <!-- 3. 고체 용질 선택 -->
+                <div class="clean-panel p-5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 block">3. Solute (고체 용질)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer group relative">
+                            <input type="radio" name="soluteSelect" value="iodine" class="l2-solu-radio select-radio sr-only">
+                            <div class="h-full p-2.5 rounded-lg border border-slate-200 hover:border-slate-800 flex items-center justify-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-purple-600 indicator"></div>
+                                <div class="text-xs text-slate-500 font-bold label-text">아이오딘</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer group relative">
+                            <input type="radio" name="soluteSelect" value="cuso4" class="l2-solu-radio select-radio sr-only">
+                            <div class="h-full p-2.5 rounded-lg border border-slate-200 hover:border-slate-800 flex items-center justify-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-blue-600 indicator"></div>
+                                <div class="text-xs text-slate-500 font-bold label-text">황산구리</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-2 mb-4 flex flex-col gap-2">
+                    <div class="flex flex-row gap-2 w-full">
+                        <button id="mixBtn" class="btn-press flex-1 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm tracking-wide shadow-lg shadow-slate-200 flex items-center justify-center gap-2 transition-all">
+                            <span>추가하기 (Add)</span>
+                        </button>
+                        <button id="shakeBtn" class="btn-press flex-1 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm tracking-wide shadow-lg shadow-slate-200 flex items-center justify-center gap-2 transition-all">
+                            <span>흔들어 섞기 (Shake)</span>
+                        </button>
+                    </div>
+                    <!-- Go to Lab 2 Quiz Button -->
+                    <button onclick="toggleLab2View('quiz')" class="btn-press w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm tracking-wide shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 transition-all mt-2">
+                        <span>다음 단계: 용해성 퀴즈 풀기</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAB 2: Quiz View -->
+        <div id="lab2-quiz-view" class="hidden-screen w-full h-full max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 p-8 flex-col items-center justify-center gap-10 fade-in min-h-[600px]">
+            <div class="text-center w-full">
+                <h2 class="text-3xl font-extrabold text-slate-800">어디에 녹을까요?</h2>
+                <p class="text-slate-500 mt-2 text-sm mb-2">용해성 원리(끼리끼리 녹는다)를 바탕으로 물질을 분류해보세요.</p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-6 w-full justify-center items-stretch min-h-[250px]">
+                <div id="hydrophilic-zone" class="drop-zone flex-1 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-start p-6 relative transition-colors">
+                    <div class="text-lg font-extrabold text-blue-600 mb-1">극성 용매 (물)에 녹음</div>
+                    <div class="text-xs text-slate-400 mb-6 font-medium">(친수성)</div>
+                    <div class="item-container flex flex-wrap gap-3 justify-center content-start w-full min-h-[100px]"></div>
+                </div>
+                <div id="hydrophobic-zone" class="drop-zone flex-1 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-start p-6 relative transition-colors">
+                    <div class="text-lg font-extrabold text-slate-600 mb-1">무극성 용매 (헥세인)에 녹음</div>
+                    <div class="text-xs text-slate-400 mb-6 font-medium">(소수성/친유성)</div>
+                    <div class="item-container flex flex-wrap gap-3 justify-center content-start w-full min-h-[100px]"></div>
+                </div>
+            </div>
+            <div class="w-full bg-slate-100 rounded-xl p-6 min-h-[120px] flex flex-col justify-center items-center text-center">
+                <div class="text-xs font-bold text-slate-400 mb-6 tracking-wide uppercase">Draggable Items (드래그하여 분류하세요)</div>
+                <div id="lab2-item-source" class="flex flex-wrap gap-3 justify-center items-center w-full min-h-[50px]"></div>
+            </div>
+            <div id="lab2-result-message" class="hidden w-fit mx-auto px-8 py-3 rounded-xl text-center text-sm font-bold animate-pulse shadow-sm transition-all whitespace-nowrap"></div>
+            <div class="flex gap-4 w-full max-w-md pt-2 justify-center mx-auto">
+                <button onclick="toggleLab2View('sim')" class="px-8 py-3.5 rounded-xl border border-slate-300 text-slate-600 font-bold hover:bg-slate-50 transition-colors text-sm w-auto shadow-sm min-w-[140px] flex justify-center items-center">
+                    다시 실험하기
+                </button>
+                <button id="lab2-checkAnswerBtn" class="px-10 py-3.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-colors text-sm w-auto min-w-[140px] flex justify-center items-center">
+                    정답 확인
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // ================= GLOBAL VARIABLES (for Drag & Drop) =================
+    let dragItem = null; 
+    let dragClone = null; 
+    let dragOffsetX = 0; 
+    let dragOffsetY = 0;
+
+    // ================= GLOBAL NAVIGATION =================
+    function navigateTo(screenId) {
+        document.getElementById('main-menu').classList.add('hidden-screen');
+        document.getElementById('lab1-container').classList.add('hidden-screen');
+        document.getElementById('lab2-container').classList.add('hidden-screen');
+
+        if (screenId === 'home') {
+            document.getElementById('main-menu').classList.remove('hidden-screen');
+        } else if (screenId === 'lab1') {
+            document.getElementById('lab1-container').classList.remove('hidden-screen');
+            toggleLab1View('sim');
+            resizeLab1();
+        } else if (screenId === 'lab2') {
+            document.getElementById('lab2-container').classList.remove('hidden-screen');
+            toggleLab2View('sim');
+            resizeLab2();
+            resetLab2();
+        }
+    }
+
+    function toggleLab1View(view) {
+        const simView = document.getElementById('lab1-sim-view');
+        const quizView = document.getElementById('lab1-quiz-view');
+        if (view === 'quiz') {
+            simView.classList.add('hidden-screen');
+            quizView.classList.remove('hidden-screen');
+            initLab1Quiz();
+        } else {
+            quizView.classList.add('hidden-screen');
+            simView.classList.remove('hidden-screen');
+            resizeLab1();
+        }
+    }
+
+    function toggleLab2View(view) {
+        const simView = document.getElementById('lab2-sim-view');
+        const quizView = document.getElementById('lab2-quiz-view');
+        if (view === 'quiz') {
+            simView.classList.add('hidden-screen');
+            quizView.classList.remove('hidden-screen');
+            initLab2Quiz();
+        } else {
+            quizView.classList.add('hidden-screen');
+            simView.classList.remove('hidden-screen');
+            resizeLab2();
+        }
+    }
+
+    // ================= LAB 1: Electrostatic Induction =================
+    const canvas1 = document.getElementById('simCanvas');
+    const ctx1 = canvas1.getContext('2d');
+    const container1 = document.getElementById('lab1-canvas-wrap');
+    
+    // Variables & Constants
+    let l1_scale = 1;
+    let l1_isFlowing = false;
+    let l1_liquidKey = 'water';
+    let l1_objectKey = 'balloon';
+    let l1_particles = [];
+    let l1_buretteVol = 50;
+    let l1_flaskVol = 0;
+    let l1_chargedObj = { x: 0, y: 0, isDragging: false };
+
+    // Layout Adjusted: Burette higher, Flask gap increased
+    const L1_LAYOUT = { 
+        baseW: 700, baseH: 600,
+        stand: { x: 210, y: 560 },
+        burette: { top: 20, bot: 320, tip: 360 }, 
+        flask: { y: 560 }
+    };
+    const L1_DATA = {
+        liquids: {
+            'water': { type: 'polar', force: 1.0 },
+            'ethanol': { type: 'polar', force: 0.5 },
+            'hexane': { type: 'nonpolar', force: 0.0 },
+            'ccl4': { type: 'nonpolar', force: 0.0 }
+        },
+        objects: {
+            'balloon': { color: '#ec4899', label: '---', r: 50, type: 'sphere', sign: -1 },
+            'glass': { color: '#e2e8f0', label: '+++', r: 15, len: 120, type: 'rod', sign: 1 },
+            'ebonite': { color: '#334155', label: '---', r: 15, len: 120, type: 'rod', sign: -1 }
+        }
+    };
+
+    function resizeLab1() {
+        if (!container1.clientWidth) return;
+        const w = container1.clientWidth;
+        const h = container1.clientHeight;
+        const aspect = 600 / 700;
+        let tw = w; let th = w * aspect;
+        if (th > h) { th = h; tw = th / aspect; }
+        const dpr = window.devicePixelRatio || 1;
+        canvas1.width = tw * dpr;
+        canvas1.height = th * dpr;
+        canvas1.style.width = `${tw}px`;
+        canvas1.style.height = `${th}px`;
+        
+        ctx1.resetTransform();
+        ctx1.scale(dpr, dpr);
+        l1_scale = tw / 700;
+        if (l1_chargedObj.x === 0) { l1_chargedObj.x = 700 * 0.78; l1_chargedObj.y = 460; }
+        drawLab1();
+    }
+    const ro1 = new ResizeObserver(() => { if (!document.getElementById('lab1-container').classList.contains('hidden-screen')) resizeLab1(); });
+    ro1.observe(container1);
+
+    document.querySelectorAll('input[name="liquidSelect"]').forEach(el => el.addEventListener('change', e => l1_liquidKey = e.target.value));
+    document.querySelectorAll('input[name="objectSelect"]').forEach(el => el.addEventListener('change', e => l1_objectKey = e.target.value));
+    document.getElementById('flowToggleBtn').addEventListener('click', () => {
+        if (l1_buretteVol <= 0) return;
+        l1_isFlowing = !l1_isFlowing;
+        const btn = document.getElementById('flowToggleBtn');
+        if(l1_isFlowing) { btn.innerHTML = `<span class="relative">실험 중지</span>`; btn.classList.add('bg-slate-700'); }
+        else { btn.innerHTML = `<div class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div><span class="relative">실험 시작 (Start)</span>`; btn.classList.remove('bg-slate-700'); }
+    });
+    document.getElementById('refillBtn').addEventListener('click', () => {
+        l1_isFlowing = false; l1_buretteVol = 50; l1_flaskVol = 0; l1_particles = [];
+        l1_chargedObj.x = 700 * 0.78; l1_chargedObj.y = 460;
+        document.getElementById('volDisplay').textContent = "50.0";
+        document.getElementById('flowToggleBtn').innerHTML = `<div class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div><span class="relative">실험 시작 (Start)</span>`;
+        document.getElementById('flowToggleBtn').classList.remove('bg-slate-700');
+        drawLab1();
+    });
+
+    // Lab 1 Interaction
+    function getL1Pos(e) {
+        const rect = canvas1.getBoundingClientRect();
+        const visualScale = rect.width / 700;
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: (cx - rect.left) / visualScale, y: (cy - rect.top) / visualScale };
+    }
+    function l1Start(e) {
+        if(e.type === 'touchstart') e.preventDefault(); 
+        const p = getL1Pos(e);
+        const obj = L1_DATA.objects[l1_objectKey];
+        let hit = false;
+        if (obj.type === 'sphere') { if (Math.hypot(p.x - l1_chargedObj.x, p.y - l1_chargedObj.y) < obj.r * 1.5) hit = true; }
+        else { if (Math.abs(p.x - l1_chargedObj.x) < 40 && Math.abs(p.y - l1_chargedObj.y) < 60) hit = true; }
+        if (hit) {
+            l1_chargedObj.isDragging = true;
+            document.getElementById('lab1-overlay').style.opacity = '0';
+            setTimeout(() => document.getElementById('lab1-overlay').style.display = 'none', 500);
+        }
+    }
+    function l1Move(e) {
+        if (!l1_chargedObj.isDragging) return;
+        if(e.type === 'touchmove') e.preventDefault();
+        const p = getL1Pos(e);
+        l1_chargedObj.x = p.x; l1_chargedObj.y = p.y;
+    }
+    function l1End() { l1_chargedObj.isDragging = false; }
+    canvas1.addEventListener('mousedown', l1Start); window.addEventListener('mousemove', l1Move); window.addEventListener('mouseup', l1End);
+    canvas1.addEventListener('touchstart', l1Start, {passive:false}); window.addEventListener('touchmove', l1Move, {passive:false}); window.addEventListener('touchend', l1End);
+
+    // Lab 1 Logic & Draw
+    function updateLab1() {
+        if (l1_isFlowing) {
+            if (l1_buretteVol > 0) {
+                l1_buretteVol -= 0.1; l1_flaskVol += 0.1;
+                document.getElementById('volDisplay').textContent = l1_buretteVol.toFixed(1);
+                const liq = L1_DATA.liquids[l1_liquidKey];
+                for(let i=0; i<3; i++) {
+                    l1_particles.push({
+                        x: (330 + Math.random()*4 - 2), y: 360,
+                        vx: (Math.random()-0.5)*0.2, vy: 2 + Math.random(),
+                        color: `rgba(200, 210, 220, ${0.4+Math.random()*0.2})`,
+                        force: liq.force, dead: false
+                    });
+                }
+            } else {
+                l1_isFlowing = false;
+                document.getElementById('flowToggleBtn').innerHTML = `<span class="relative">실험 완료</span>`;
+            }
+        }
+        const objX = l1_chargedObj.x; const objY = l1_chargedObj.y;
+        const flaskY = 560; const fillH = (l1_flaskVol/200) * 160; const surfaceY = flaskY - fillH;
+        l1_particles.forEach(p => {
+            p.vy += 0.25; 
+            if (p.force > 0) {
+                const dx = objX - p.x; const dy = objY - p.y;
+                const dSq = dx*dx + dy*dy;
+                if (dSq > 225 && dSq < 90000) {
+                    const f = (1800 * p.force) / dSq;
+                    const ang = Math.atan2(dy, dx);
+                    p.vx += Math.cos(ang) * f;
+                }
+            }
+            p.vx *= 0.92; 
+            if (p.y > 370) { if(p.x < 310) { p.x = 310; p.vx = 0; } if(p.x > 350) { p.x = 350; p.vx = 0; } }
+            p.x += p.vx; p.y += p.vy;
+            if (p.y >= surfaceY && p.x > 250 && p.x < 410) p.dead = true;
+            if (p.y > 600) p.dead = true;
+        });
+        l1_particles = l1_particles.filter(p => !p.dead);
+    }
+
+    function drawLab1() {
+        ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+        // Stand
+        ctx1.fillStyle = "#cbd5e1"; ctx1.fillRect((210-60)*l1_scale, 560*l1_scale, 320*l1_scale, 25*l1_scale);
+        ctx1.fillStyle = "#94a3b8"; ctx1.fillRect(210*l1_scale, 40*l1_scale, 14*l1_scale, 520*l1_scale);
+        // Clamp
+        const clampY = 280 * l1_scale; 
+        ctx1.fillStyle = "#64748b"; ctx1.fillRect(220*l1_scale, clampY, 110*l1_scale, 10*l1_scale);
+        ctx1.fillStyle = "#475569"; ctx1.beginPath(); ctx1.roundRect(310*l1_scale, clampY - 8*l1_scale, 40*l1_scale, 24*l1_scale, 4*l1_scale); ctx1.fill();
+        // Burette
+        const bx = 330 * l1_scale; const bW = 22 * l1_scale; const bTop = 20 * l1_scale; const bBot = 320 * l1_scale; const bTip = 360 * l1_scale;
+        const bCockY = 335 * l1_scale;
+        ctx1.fillStyle = "rgba(255,255,255,0.3)"; ctx1.strokeStyle = "rgba(148,163,184,0.6)"; ctx1.lineWidth = 1.5;
+        ctx1.beginPath(); ctx1.moveTo(bx-bW/2, bTop); ctx1.lineTo(bx-bW/2, bBot); ctx1.lineTo(bx+bW/2, bBot); ctx1.lineTo(bx+bW/2, bTop); ctx1.stroke(); ctx1.fill();
+        ctx1.beginPath(); ctx1.moveTo(bx-bW/2, bBot); ctx1.quadraticCurveTo(bx, bTip, bx, bTip); ctx1.quadraticCurveTo(bx+bW/2, bBot, bx+bW/2, bBot); ctx1.stroke();
+        if (l1_buretteVol > 0) {
+            const h = (l1_buretteVol/50) * (300*l1_scale);
+            ctx1.fillStyle = "rgba(203, 213, 225, 0.5)"; ctx1.fillRect(bx - bW/2 + 1, bBot - h, bW - 2, h);
+        }
+        // Cock
+        ctx1.fillStyle = "#f8fafc"; ctx1.strokeStyle = "#94a3b8"; ctx1.lineWidth = 1; ctx1.beginPath(); ctx1.arc(bx, bCockY, 6*l1_scale, 0, Math.PI*2); ctx1.fill(); ctx1.stroke();
+        ctx1.fillStyle = l1_isFlowing ? "#22c55e" : "#ef4444"; ctx1.beginPath();
+        if (l1_isFlowing) ctx1.roundRect(bx - 2*l1_scale, bCockY - 9*l1_scale, 4*l1_scale, 18*l1_scale, 2*l1_scale);
+        else ctx1.roundRect(bx - 9*l1_scale, bCockY - 2*l1_scale, 18*l1_scale, 4*l1_scale, 2*l1_scale);
+        ctx1.fill();
+        // Flask
+        const fx = 330 * l1_scale; const fy = 560 * l1_scale;
+        ctx1.strokeStyle = "rgba(148,163,184,0.6)"; ctx1.lineWidth = 2;
+        ctx1.beginPath();
+        ctx1.moveTo(fx-22*l1_scale, fy-180*l1_scale); ctx1.lineTo(fx-22*l1_scale, fy-140*l1_scale);
+        ctx1.lineTo(fx-80*l1_scale, fy-20*l1_scale); ctx1.quadraticCurveTo(fx-80*l1_scale, fy, fx-60*l1_scale, fy);
+        ctx1.lineTo(fx+60*l1_scale, fy); ctx1.quadraticCurveTo(fx+80*l1_scale, fy, fx+80*l1_scale, fy-20*l1_scale);
+        ctx1.lineTo(fx+22*l1_scale, fy-140*l1_scale); ctx1.lineTo(fx+22*l1_scale, fy-180*l1_scale); ctx1.stroke();
+        if (l1_flaskVol > 0) {
+            const fh = (Math.min(l1_flaskVol,200)/200) * 160 * l1_scale;
+            ctx1.fillStyle = "rgba(203, 213, 225, 0.5)"; ctx1.fillRect(fx - 70*l1_scale, fy - fh, 140*l1_scale, fh);
+        }
+        l1_particles.forEach(p => {
+            ctx1.fillStyle = p.color; ctx1.beginPath(); ctx1.arc(p.x * l1_scale, p.y * l1_scale, 2*l1_scale, 0, Math.PI*2); ctx1.fill();
+        });
+        const obj = L1_DATA.objects[l1_objectKey]; const r = obj.r * l1_scale;
+        ctx1.save(); ctx1.translate(l1_chargedObj.x * l1_scale, l1_chargedObj.y * l1_scale);
+        ctx1.shadowColor = "rgba(0,0,0,0.1)"; ctx1.shadowBlur = 10;
+        if (obj.type === 'sphere') {
+            const grad = ctx1.createRadialGradient(-r*0.3, -r*0.3, r*0.1, 0, 0, r);
+            grad.addColorStop(0, "#fff"); grad.addColorStop(0.2, obj.color); grad.addColorStop(1, "#be185d");
+            ctx1.fillStyle = grad; ctx1.beginPath(); ctx1.arc(0,0,r,0,Math.PI*2); ctx1.fill();
+            ctx1.fillStyle = "white"; ctx1.font = `bold ${16*l1_scale}px sans-serif`; ctx1.textAlign = "center"; ctx1.textBaseline="middle"; ctx1.fillText(obj.label, 0, 0);
+        } else {
+            ctx1.rotate(-Math.PI/4); ctx1.fillStyle = obj.color;
+            ctx1.beginPath(); ctx1.roundRect(-r, -obj.len*l1_scale/2, r*2, obj.len*l1_scale, r); ctx1.fill();
+            ctx1.fillStyle = (l1_objectKey==='glass')?"blue":"white"; ctx1.font = `bold ${14*l1_scale}px sans-serif`; ctx1.textAlign="center"; ctx1.fillText(obj.label, 0, 0);
+        }
+        ctx1.restore();
+    }
+
+    // ================= LAB 1 QUIZ LOGIC =================
+    const quizItemsL1 = [
+        { id: 'q-water', name: '물', type: 'polar', formula: 'H₂O' },
+        { id: 'q-ethanol', name: '에탄올', type: 'polar', formula: 'C₂H₅OH' },
+        { id: 'q-hexane', name: '헥세인', type: 'nonpolar', formula: 'C₆H₁₄' },
+        { id: 'q-ccl4', name: '사염화탄소', type: 'nonpolar', formula: 'CCl₄' }
+    ];
+    
+    function initLab1Quiz() {
+        const itemSource = document.getElementById('lab1-item-source');
+        itemSource.innerHTML = '';
+        document.getElementById('lab1-quiz-view').querySelectorAll('.item-container').forEach(el => el.innerHTML = '');
+        document.getElementById('lab1-result-message').className = 'hidden w-fit mx-auto px-8 py-3 rounded-xl text-center text-sm font-bold animate-pulse shadow-sm transition-all whitespace-nowrap bg-slate-100 text-slate-600 border border-slate-200';
+        
+        quizItemsL1.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'draggable-item bg-white border border-slate-300 rounded-lg px-4 py-2 shadow-sm text-sm font-bold text-slate-600 gap-1.5 hover:shadow-md';
+            el.dataset.type = item.type;
+            el.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-400 inline-block mr-1.5"></span>${item.name} <span class="text-[10px] text-slate-400 font-normal">(${item.formula})</span>`;
+            setupDragEvents(el);
+            itemSource.appendChild(el);
+        });
+    }
+    
+    document.getElementById('lab1-checkAnswerBtn').addEventListener('click', () => {
+        // Reuse logic structure or separate? Using explicit separation for safety
+        const pZone = document.getElementById('polar-zone');
+        const nZone = document.getElementById('nonpolar-zone');
+        const msg = document.getElementById('lab1-result-message');
+        
+        [pZone, nZone].forEach(z => z.classList.remove('bg-green-50', 'border-green-500', 'bg-red-50', 'border-red-500'));
+        
+        let pCorrect = true; let nCorrect = true;
+        const pItems = pZone.querySelectorAll('.draggable-item');
+        const nItems = nZone.querySelectorAll('.draggable-item');
+        
+        pItems.forEach(i => { if(i.dataset.type !== 'polar') pCorrect=false; });
+        nItems.forEach(i => { if(i.dataset.type !== 'nonpolar') nCorrect=false; });
+        
+        if(pItems.length>0 && pCorrect) pZone.classList.add('bg-green-50', 'border-green-500');
+        else if(pItems.length>0) pZone.classList.add('bg-red-50', 'border-red-500');
+        
+        if(nItems.length>0 && nCorrect) nZone.classList.add('bg-green-50', 'border-green-500');
+        else if(nItems.length>0) nZone.classList.add('bg-red-50', 'border-red-500');
+        
+        msg.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700', 'bg-yellow-100', 'text-yellow-700');
+        if (pItems.length + nItems.length === 0) { msg.textContent = "물질을 분류 상자로 이동시켜주세요."; msg.classList.add('bg-yellow-100', 'text-yellow-700'); }
+        else if (pCorrect && nCorrect && pItems.length + nItems.length === 4) { msg.textContent = "정답입니다! 완벽하게 분류했습니다."; msg.classList.add('bg-green-100', 'text-green-700'); }
+        else { msg.textContent = "틀린 부분이 있거나 분류하지 않은 물질이 있습니다."; msg.classList.add('bg-red-100', 'text-red-700'); }
+    });
+
+    // ================= LAB 2: Solubility (UPDATED SEQUENTIAL MIXING + VISUALS) =================
+    const canvas2 = document.getElementById('mixCanvas');
+    const ctx2 = canvas2.getContext('2d');
+    const container2 = document.getElementById('lab2-canvas-wrap');
+    let l2_scale = 1;
+    let l2_mixing = false;
+    let l2_progress = 0; 
+    let l2_selectedAdd = 'ethanol'; 
+    let l2_beakerState = []; 
+    let l2_solidSediment = null; // Track solid that didn't dissolve
+    let l2_isShaking = false; // Shaking state
+    let l2_shakeOffset = {x:0, y:0};
+
+    // Updated Data: Clear Liquids, Colored Solids
+    const L2_DATA = {
+        'water': { type: 'polar', density: 1.0, color: 'rgba(200, 210, 230, 0.15)', name: '물', kind: 'liquid' },
+        'ethanol': { type: 'polar', density: 0.79, color: 'rgba(200, 210, 230, 0.15)', name: '에탄올', kind: 'liquid' },
+        'hexane': { type: 'nonpolar', density: 0.66, color: 'rgba(200, 210, 230, 0.15)', name: '헥세인', kind: 'liquid' },
+        'ccl4': { type: 'nonpolar', density: 1.59, color: 'rgba(200, 210, 230, 0.15)', name: '사염화탄소', kind: 'liquid' },
+        'iodine': { type: 'nonpolar', density: 4.93, color: '#7e22ce', name: '아이오딘', kind: 'solid' }, // purple
+        'cuso4': { type: 'polar', density: 3.6, color: '#2563eb', name: '황산구리', kind: 'solid' } // blue
+    };
+
+    function resizeLab2() {
+        if (!container2.clientWidth) return;
+        const w = container2.clientWidth; const h = container2.clientHeight;
+        const aspect = 600 / 700;
+        let tw = w; let th = w * aspect;
+        if (th > h) { th = h; tw = th / aspect; }
+        const dpr = window.devicePixelRatio || 1;
+        canvas2.width = tw * dpr; canvas2.height = th * dpr;
+        canvas2.style.width = `${tw}px`; canvas2.style.height = `${th}px`;
+        ctx2.resetTransform(); ctx2.scale(dpr, dpr);
+        l2_scale = tw / 700;
+        drawLab2();
+    }
+    const ro2 = new ResizeObserver(() => { if (!document.getElementById('lab2-container').classList.contains('hidden-screen')) resizeLab2(); });
+    ro2.observe(container2);
+
+    function initBeaker(solventKey) {
+        const s = L2_DATA[solventKey];
+        l2_beakerState = [{
+            type: s.type,
+            density: s.density,
+            volume: 100, // Initial volume
+            color: s.color,
+            name: s.name,
+            solidColor: null
+        }];
+        l2_mixing = false;
+        l2_progress = 0;
+        l2_solidSediment = null;
+        l2_isShaking = false;
+        drawLab2();
+    }
+
+    document.querySelectorAll('.l2-solv-radio').forEach(el => el.addEventListener('change', e => { initBeaker(e.target.value); }));
+    document.querySelectorAll('.l2-solu-radio').forEach(el => el.addEventListener('change', e => { l2_selectedAdd = e.target.value; }));
+    
+    document.getElementById('mixBtn').addEventListener('click', () => { 
+        if(l2_mixing || l2_isShaking) return; 
+        l2_mixing = true; l2_progress = 0;
+        requestAnimationFrame(animateMix);
+    });
+
+    document.getElementById('shakeBtn').addEventListener('click', () => {
+        if(l2_mixing || l2_isShaking) return;
+        startShaking();
+    });
+    
+    // RESET BUTTON LOGIC
+    function resetLab2() {
+        l2_mixing = false;
+        l2_progress = 0;
+        l2_layerState = 'none';
+        l2_beakerState = []; // Completely empty
+        l2_solidSediment = null; // Clear solid
+        l2_isShaking = false;
+        
+        // Uncheck all solvent radios
+        document.querySelectorAll('.l2-solv-radio').forEach(el => el.checked = false);
+        
+        drawLab2();
+    }
+
+    document.getElementById('lab2-reset').addEventListener('click', resetLab2);
+
+    function animateMix() {
+        if (!l2_mixing) return;
+        l2_progress += 1.5; // Speed
+        drawLab2();
+        if (l2_progress >= 100) {
+            l2_mixing = false;
+            addToBeaker(l2_selectedAdd);
+            drawLab2();
+        } else {
+            requestAnimationFrame(animateMix);
+        }
+    }
+
+    function startShaking() {
+        l2_isShaking = true;
+        let shakeDuration = 60; // frames
+        let currentShake = 0;
+        
+        function animateShake() {
+            if(currentShake >= shakeDuration) {
+                l2_isShaking = false;
+                l2_shakeOffset = {x:0, y:0};
+                resolveSolubility(); // Check for dissolving *after* shake
+                drawLab2();
+                return;
+            }
+            
+            l2_shakeOffset.x = (Math.random()-0.5) * 10 * l2_scale;
+            l2_shakeOffset.y = (Math.random()-0.5) * 5 * l2_scale;
+            
+            currentShake++;
+            drawLab2();
+            requestAnimationFrame(animateShake);
+        }
+        animateShake();
+    }
+
+    function resolveSolubility() {
+        if(!l2_solidSediment) return;
+        
+        // Check if ANY layer is compatible with sediment
+        let dissolved = false;
+        for (let layer of l2_beakerState) {
+            if (layer.type === l2_solidSediment.type) { // Compatible polarity
+                layer.solidColor = l2_solidSediment.color;
+                dissolved = true;
+            }
+        }
+        
+        if(dissolved) {
+            l2_solidSediment = null; // Consumed
+        }
+    }
+
+    function addToBeaker(key) {
+        const item = L2_DATA[key];
+        
+        if (item.kind === 'liquid') {
+            let merged = false;
+            for (let layer of l2_beakerState) {
+                if (layer.type === item.type) {
+                    layer.volume += 50; 
+                    if (layer.name !== item.name) {
+                        layer.name = "혼합 용액";
+                    }
+                    merged = true;
+                    break;
+                }
+            }
+            if (!merged) {
+                l2_beakerState.push({
+                    type: item.type,
+                    density: item.density,
+                    volume: 50,
+                    color: item.color,
+                    name: item.name,
+                    solidColor: null
+                });
+            }
+            l2_beakerState.sort((a, b) => b.density - a.density);
+
+        } else if (item.kind === 'solid') {
+            let dissolved = false;
+            for (let layer of l2_beakerState) {
+                if (layer.type === item.type) {
+                    layer.solidColor = item.color;
+                    dissolved = true;
+                }
+            }
+            if (!dissolved) {
+                l2_solidSediment = item;
+            }
+        }
+    }
+
+    function drawLab2() {
+        ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+        const cx = 350 * l2_scale + l2_shakeOffset.x; 
+        const cy = 520 * l2_scale + l2_shakeOffset.y; // 바닥 위치 조정 (매스실린더 높이에 맞게)
+        
+        // 매스실린더 치수 (이미지 비율 참고)
+        const cylW = 110 * l2_scale; // 80 -> 110
+        const cylH = 350 * l2_scale; // 긴 높이
+        const baseW = 170 * l2_scale; // 140 -> 170
+        const baseH = 20 * l2_scale; // 받침대 높이
+
+        const tableY = cy + baseH/2; 
+        
+        // Table & Shadow
+        ctx2.save();
+        ctx2.resetTransform(); // Background static
+        ctx2.scale(l2_scale * 700 / canvas2.width * window.devicePixelRatio, l2_scale * 700 / canvas2.width * window.devicePixelRatio); // normalize scale hack, actually resetTransform clears scale.
+        // Re-apply global scale if needed or draw static bg? 
+        // Just draw table relative to untransformed canvas bottom or static Y?
+        // For simplicity, draw table using transformed coords but remove offset? 
+        // Actually, table should stay static while beaker shakes.
+        // Let's draw table relative to *base* position without offset
+        const staticCx = 350 * l2_scale;
+        const staticCy = 520 * l2_scale;
+        const staticTableY = staticCy + baseH/2;
+        
+        ctx2.fillStyle = "#d4e4dd"; ctx2.fillRect(0, staticTableY, canvas2.width, canvas2.height - staticTableY);
+        ctx2.strokeStyle = "#b0c4de"; ctx2.lineWidth=1; ctx2.beginPath(); ctx2.moveTo(0, staticTableY); ctx2.lineTo(canvas2.width, staticTableY); ctx2.stroke();
+        
+        // Shadow
+        ctx2.fillStyle = "rgba(0, 0, 0, 0.1)"; ctx2.beginPath(); ctx2.ellipse(staticCx, staticTableY, baseW/1.8, baseH, 0, 0, Math.PI*2); ctx2.fill();
+        ctx2.restore();
+
+        // 1. Cylinder Base
+        ctx2.fillStyle = "#e2e8f0"; ctx2.strokeStyle = "#94a3b8"; ctx2.lineWidth = 1;
+        ctx2.beginPath(); ctx2.ellipse(cx, cy, baseW/2, baseH/2, 0, 0, Math.PI*2); ctx2.fill(); ctx2.stroke();
+        ctx2.fillStyle = "#cbd5e1"; ctx2.beginPath(); ctx2.rect(cx - baseW/2, cy - 5*l2_scale, baseW, 10*l2_scale); ctx2.fill();
+        ctx2.beginPath(); ctx2.moveTo(cx - cylW/2 - 5*l2_scale, cy - 10*l2_scale); ctx2.lineTo(cx + cylW/2 + 5*l2_scale, cy - 10*l2_scale); ctx2.stroke();
+
+        // 2. Body Clip
+        ctx2.save();
+        ctx2.beginPath(); ctx2.rect(cx - cylW/2, cy - cylH, cylW, cylH - 10*l2_scale); ctx2.closePath(); ctx2.clip();
+
+        // --- Draw Layers ---
+        let currentY = cy - 10*l2_scale; 
+        const pxPerVol = (cylH * 0.8) / 200; 
+
+        l2_beakerState.forEach(layer => {
+            const h = layer.volume * pxPerVol;
+            const topY = currentY - h;
+            
+            if (layer.solidColor) {
+                ctx2.fillStyle = layer.solidColor;
+                ctx2.globalAlpha = 0.6; 
+            } else {
+                ctx2.fillStyle = layer.color;
+                ctx2.globalAlpha = 1.0;
+            }
+            ctx2.fillRect(cx - cylW/2, topY, cylW, h);
+            ctx2.globalAlpha = 1.0;
+            
+            // Surface Line
+            if (layer.volume > 0) {
+                ctx2.beginPath(); ctx2.moveTo(cx - cylW/2, topY); ctx2.lineTo(cx + cylW/2, topY); 
+                ctx2.strokeStyle = "rgba(148,163,184,0.5)"; ctx2.stroke();
+            }
+            currentY -= h;
+        });
+        ctx2.restore(); 
+
+        // --- Outline ---
+        ctx2.strokeStyle = "#64748b"; ctx2.lineWidth = 2 * l2_scale; ctx2.lineJoin = 'round';
+        ctx2.beginPath(); ctx2.moveTo(cx - cylW/2, cy - cylH); ctx2.lineTo(cx - cylW/2, cy - 10*l2_scale); ctx2.moveTo(cx + cylW/2, cy - cylH); ctx2.lineTo(cx + cylW/2, cy - 10*l2_scale); ctx2.stroke();
+        ctx2.beginPath(); ctx2.moveTo(cx - cylW/2, cy - cylH); ctx2.quadraticCurveTo(cx - cylW/2 - 10*l2_scale, cy - cylH - 5*l2_scale, cx - cylW/2 - 15*l2_scale, cy - cylH - 15*l2_scale); 
+        ctx2.moveTo(cx - cylW/2, cy - cylH); ctx2.bezierCurveTo(cx, cy - cylH + 10*l2_scale, cx + cylW/2, cy - cylH + 5*l2_scale, cx + cylW/2, cy - cylH); ctx2.stroke();
+
+        // Graduations (No Numbers)
+        ctx2.fillStyle = "#475569";
+        const gradStartY = cy - 30*l2_scale; const gradHeight = cylH * 0.8; const step = gradHeight / 10; 
+        for (let i=1; i<=10; i++) {
+            const y = gradStartY - (i-1) * step;
+            ctx2.beginPath(); ctx2.moveTo(cx - cylW/4, y); ctx2.lineTo(cx + cylW/4, y); ctx2.stroke();
+        }
+
+        // Animation (Pouring)
+        if (l2_mixing) {
+            const item = L2_DATA[l2_selectedAdd];
+            const pourX = cx + 80*l2_scale; const pourY = cy - cylH - 80*l2_scale;
+            
+            if (item.kind === 'liquid') {
+                ctx2.save(); ctx2.translate(pourX, pourY); ctx2.rotate(-1.2); 
+                ctx2.fillStyle = "rgba(255,255,255,0.6)"; ctx2.strokeStyle = "#64748b"; ctx2.lineWidth = 2 * l2_scale;
+                const pcW = 50 * l2_scale; const pcH = 200 * l2_scale; 
+                ctx2.beginPath(); ctx2.rect(-pcW/2, -pcH, pcW, pcH); ctx2.fill(); ctx2.stroke();
+                ctx2.beginPath(); ctx2.ellipse(0, 0, pcW/1.5, 5*l2_scale, 0, 0, Math.PI*2); ctx2.stroke(); ctx2.fill();
+                ctx2.fillStyle = item.color; ctx2.fillRect(-pcW/2 + 2, -pcH + 20, pcW - 4, pcH - 40); 
+                ctx2.restore();
+
+                ctx2.fillStyle = "rgba(200, 210, 230, 0.4)"; ctx2.beginPath();
+                const startX = pourX - 80*l2_scale; const startY = pourY - 10*l2_scale;
+                ctx2.moveTo(startX, startY);
+                ctx2.quadraticCurveTo(cx, startY + 100*l2_scale, cx, currentY + 20*l2_scale);
+                ctx2.lineTo(cx + 10*l2_scale, currentY + 20*l2_scale);
+                ctx2.quadraticCurveTo(cx + 10*l2_scale, startY + 100*l2_scale, startX + 15*l2_scale, startY + 5*l2_scale);
+                ctx2.fill();
+            } else {
+                const spoonX = cx; const spoonY = cy - cylH - 30*l2_scale;
+                ctx2.save(); ctx2.translate(spoonX, spoonY); ctx2.rotate(0.4); 
+                ctx2.fillStyle = "#94a3b8"; ctx2.fillRect(0, -5*l2_scale, 100*l2_scale, 10*l2_scale);
+                ctx2.beginPath(); ctx2.ellipse(0, 0, 20*l2_scale, 12*l2_scale, 0, 0, Math.PI*2); ctx2.fill(); ctx2.stroke(); ctx2.restore();
+                ctx2.fillStyle = item.color;
+                const fallProgress = l2_progress / 100;
+                for(let i=0; i<15; i++) {
+                    let px = cx + (Math.random()-0.5)*20*l2_scale;
+                    let py = spoonY + fallProgress * (cylH) + Math.random()*50*l2_scale; 
+                    if(py < currentY) ctx2.fillRect(px, py, 3*l2_scale, 3*l2_scale);
+                }
+            }
+        }
+        
+        // Precipitate
+        if (!l2_mixing && l2_solidSediment) {
+             const item = l2_solidSediment;
+             ctx2.fillStyle = item.color;
+             const seed = 12345; 
+             for(let i=0; i<60; i++) { 
+                 let r1 = Math.abs(Math.sin(seed + i)); let r2 = Math.abs(Math.cos(seed + i * 13));
+                 let px = cx + (r1 - 0.5) * (cylW - 10*l2_scale);
+                 let py = cy - 10*l2_scale - r2 * 15 * l2_scale; 
+                 ctx2.fillRect(px, py, 3*l2_scale, 3*l2_scale);
+             }
+             ctx2.fillStyle = "#334155"; ctx2.font = `bold ${14*l2_scale}px sans-serif`; ctx2.textAlign = "center";
+             ctx2.fillText("녹지 않음", cx, cy + 30*l2_scale);
+        }
+        
+        // Labels
+        if (!l2_mixing) {
+            let labelY = cy - 10*l2_scale;
+            l2_beakerState.forEach(layer => {
+                const h = layer.volume * pxPerVol;
+                const midY = labelY - h/2;
+                if (h > 20) { 
+                    ctx2.fillStyle = "#475569"; ctx2.font = `bold ${14*l2_scale}px sans-serif`; ctx2.textAlign = "center";
+                    ctx2.fillText(layer.name + (layer.solidColor ? " (용해됨)" : ""), cx, midY);
+                }
+                labelY -= h;
+            });
+        }
+    }
+
+    // ================= LAB 2 QUIZ LOGIC =================
+    const quizItemsL2 = [
+        { id: 'q-water', name: '물', type: 'hydrophilic', formula: 'H₂O' },
+        { id: 'q-ethanol', name: '에탄올', type: 'hydrophilic', formula: 'C₂H₅OH' },
+        { id: 'q-cuso4', name: '황산구리', type: 'hydrophilic', formula: 'CuSO₄' },
+        { id: 'q-hexane', name: '헥세인', type: 'hydrophobic', formula: 'C₆H₁₄' },
+        { id: 'q-ccl4', name: '사염화탄소', type: 'hydrophobic', formula: 'CCl₄' },
+        { id: 'q-iodine', name: '아이오딘', type: 'hydrophobic', formula: 'I₂' }
+    ];
+
+    function initLab2Quiz() {
+        const itemSource = document.getElementById('lab2-item-source');
+        itemSource.innerHTML = '';
+        document.getElementById('hydrophilic-zone').querySelector('.item-container').innerHTML = '';
+        document.getElementById('hydrophobic-zone').querySelector('.item-container').innerHTML = '';
+        document.getElementById('lab2-result-message').className = 'hidden w-fit mx-auto px-8 py-3 rounded-xl text-center text-sm font-bold animate-pulse shadow-sm transition-all whitespace-nowrap bg-slate-100 text-slate-600 border border-slate-200';
+        
+        quizItemsL2.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'draggable-item bg-white border border-slate-300 rounded-lg px-4 py-2 shadow-sm text-sm font-bold text-slate-600 gap-1.5 hover:shadow-md';
+            el.dataset.type = item.type;
+            el.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-400 inline-block mr-1.5"></span>${item.name} <span class="text-[10px] text-slate-400 font-normal">(${item.formula})</span>`;
+            setupDragEvents(el);
+            itemSource.appendChild(el);
+        });
+    }
+
+    document.getElementById('lab2-checkAnswerBtn').addEventListener('click', () => {
+        const pZone = document.getElementById('hydrophilic-zone');
+        const nZone = document.getElementById('hydrophobic-zone');
+        const msg = document.getElementById('lab2-result-message');
+        
+        [pZone, nZone].forEach(z => z.classList.remove('bg-green-50', 'border-green-500', 'bg-red-50', 'border-red-500'));
+        
+        let pCorrect = true; let nCorrect = true;
+        const pItems = pZone.querySelectorAll('.draggable-item');
+        const nItems = nZone.querySelectorAll('.draggable-item');
+        
+        pItems.forEach(i => { if(i.dataset.type !== 'hydrophilic') pCorrect=false; });
+        nItems.forEach(i => { if(i.dataset.type !== 'hydrophobic') nCorrect=false; });
+        
+        if(pItems.length>0 && pCorrect) pZone.classList.add('bg-green-50', 'border-green-500');
+        else if(pItems.length>0) pZone.classList.add('bg-red-50', 'border-red-500');
+        
+        if(nItems.length>0 && nCorrect) nZone.classList.add('bg-green-50', 'border-green-500');
+        else if(nItems.length>0) nZone.classList.add('bg-red-50', 'border-red-500');
+        
+        msg.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700', 'bg-yellow-100', 'text-yellow-700');
+        if (pItems.length + nItems.length === 0) { msg.textContent = "물질을 분류 상자로 이동시켜주세요."; msg.classList.add('bg-yellow-100', 'text-yellow-700'); }
+        else if (pCorrect && nCorrect && pItems.length + nItems.length === 6) { msg.textContent = "정답입니다! 완벽하게 분류했습니다."; msg.classList.add('bg-green-100', 'text-green-700'); }
+        else { msg.textContent = "틀린 부분이 있거나 분류하지 않은 물질이 있습니다."; msg.classList.add('bg-red-100', 'text-red-700'); }
+    });
+
+    // Common Drag Events Setup
+    function setupDragEvents(el) {
+        el.addEventListener('touchstart', handleTouchStart, {passive: false});
+        el.addEventListener('touchmove', handleTouchMove, {passive: false});
+        el.addEventListener('touchend', handleTouchEnd);
+        el.addEventListener('mousedown', handleMouseDown);
+    }
+
+    // Hook into global animate
+    function animateAll() {
+        if (!document.getElementById('lab1-container').classList.contains('hidden-screen')) {
+            if (!document.getElementById('lab1-sim-view').classList.contains('hidden-screen')) {
+                updateLab1();
+                drawLab1();
+            }
+        }
+        if (!document.getElementById('lab2-container').classList.contains('hidden-screen')) {
+             if (!document.getElementById('lab2-sim-view').classList.contains('hidden-screen')) { // Only anim if sim view
+                // updateLab2(); // (Inside animation frame logic is simpler here)
+             }
+             // We need to redraw lab2 always for animations? Yes if shaking or mixing
+             // Optimized: only if needed
+             drawLab2();
+        }
+        requestAnimationFrame(animateAll);
+    }
+    animateAll();
+
+</script>
+</body>
+</html>
