@@ -96,8 +96,9 @@
     <div id="main-menu" class="min-h-screen flex flex-col items-center p-6 fade-in">
         <div class="flex-1 flex flex-col items-center justify-center w-full max-w-5xl">
             <div class="text-center mb-12">
-                <span class="text-xs font-bold text-blue-600 uppercase tracking-[0.2em] mb-2 block">Virtual Science Lab</span>
-                <h1 class="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-tight">Lab:Simulation</h1>
+            <span class="label-xs text-indigo-600 mb-2">Virtual Science Lab</span>
+            <h1 class="text-5xl md:text-6xl font-black text-slate-800 tracking-tight mb-4 leading-tight">Lab:Simulation</h1>
+            <h2 class="text-3xl md:text-5xl font-bold text-slate-600 mb-8 tracking-tight">물질의 극성 확인하기</h2>
                 <p class="text-slate-500 mt-4 text-base md:text-lg">가상 실험실에 오신 것을 환영합니다.<br>원하는 실험 주제를 선택하세요.</p>
             </div>
 
@@ -106,7 +107,7 @@
                 <button onclick="navigateTo('lab1')" class="menu-card bg-white rounded-3xl p-8 border border-slate-200 text-left group relative overflow-hidden h-72 flex flex-col justify-between">
                     <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div class="relative z-10">
-                        <span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full mb-4">Physics / Chemistry</span>
+                        <span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full mb-4">Chemistry</span>
                         <h2 class="text-2xl font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">Lab 1. 대전체와 액체</h2>
                         <p class="text-slate-500 text-sm leading-relaxed">정전기 유도 현상으로 인해 휘어지는 액체 줄기를 관찰합니다.</p>
                     </div>
@@ -134,7 +135,7 @@
 
         <footer class="w-full flex items-center justify-center gap-2 mt-12 mb-6 text-slate-400 text-xs font-medium">
             <span>© 2025 사이음(sci_eum). 과학의 사이, 사람을 잇다.</span>
-            <a href="https://knuechem13.notion.site/ebd/2ba137a305b880fbac23d7b204098e51" target="_blank" class="hover:opacity-80 transition-opacity" title="노션 페이지 바로가기">
+            <a href="https://knuechem13.notion.site/ebd/2ba137a305b880fbac23d7b204098e51" target="_blank" class="hover:opacity-80 transition-opacity" title="오류 문의">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/e/e9/Notion-logo.svg" alt="Notion" class="w-4 h-4 opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0">
             </a>
         </footer>
@@ -331,7 +332,6 @@
                             <span>흔들어 섞기 (Shake)</span>
                         </button>
                     </div>
-                    <!-- Go to Lab 2 Quiz Button -->
                     <button onclick="toggleLab2View('quiz')" class="btn-press w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm tracking-wide shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 transition-all mt-2">
                         <span>다음 단계: 용해성 퀴즈 풀기</span>
                     </button>
@@ -868,36 +868,17 @@
 
     function drawLab2() {
         ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
-        const cx = 350 * l2_scale + l2_shakeOffset.x; 
-        const cy = 520 * l2_scale + l2_shakeOffset.y; // 바닥 위치 조정 (매스실린더 높이에 맞게)
+        const cx = 350 * l2_scale; 
+        const cy = 520 * l2_scale; // 바닥 위치
         
-        // 매스실린더 치수 (이미지 비율 참고)
-        const cylW = 110 * l2_scale; // 80 -> 110
-        const cylH = 350 * l2_scale; // 긴 높이
-        const baseW = 170 * l2_scale; // 140 -> 170
-        const baseH = 20 * l2_scale; // 받침대 높이
+        // 매스실린더 치수 (110px로 확장 유지)
+        const cylW = 110 * l2_scale; 
+        const cylH = 350 * l2_scale; 
+        const baseW = 170 * l2_scale; 
+        const baseH = 20 * l2_scale; 
 
-        const tableY = cy + baseH/2; 
-        
-        // Table & Shadow
-        ctx2.save();
-        ctx2.resetTransform(); // Background static
-        ctx2.scale(l2_scale * 700 / canvas2.width * window.devicePixelRatio, l2_scale * 700 / canvas2.width * window.devicePixelRatio); // normalize scale hack, actually resetTransform clears scale.
-        // Re-apply global scale if needed or draw static bg? 
-        // Just draw table relative to untransformed canvas bottom or static Y?
-        // For simplicity, draw table using transformed coords but remove offset? 
-        // Actually, table should stay static while beaker shakes.
-        // Let's draw table relative to *base* position without offset
-        const staticCx = 350 * l2_scale;
-        const staticCy = 520 * l2_scale;
-        const staticTableY = staticCy + baseH/2;
-        
-        ctx2.fillStyle = "#d4e4dd"; ctx2.fillRect(0, staticTableY, canvas2.width, canvas2.height - staticTableY);
-        ctx2.strokeStyle = "#b0c4de"; ctx2.lineWidth=1; ctx2.beginPath(); ctx2.moveTo(0, staticTableY); ctx2.lineTo(canvas2.width, staticTableY); ctx2.stroke();
-        
-        // Shadow
-        ctx2.fillStyle = "rgba(0, 0, 0, 0.1)"; ctx2.beginPath(); ctx2.ellipse(staticCx, staticTableY, baseW/1.8, baseH, 0, 0, Math.PI*2); ctx2.fill();
-        ctx2.restore();
+        // [수정] 테이블 배경 제거 -> 흰색 배경 유지
+        // (배경 그리기 코드 삭제됨)
 
         // 1. Cylinder Base
         ctx2.fillStyle = "#e2e8f0"; ctx2.strokeStyle = "#94a3b8"; ctx2.lineWidth = 1;
@@ -905,7 +886,7 @@
         ctx2.fillStyle = "#cbd5e1"; ctx2.beginPath(); ctx2.rect(cx - baseW/2, cy - 5*l2_scale, baseW, 10*l2_scale); ctx2.fill();
         ctx2.beginPath(); ctx2.moveTo(cx - cylW/2 - 5*l2_scale, cy - 10*l2_scale); ctx2.lineTo(cx + cylW/2 + 5*l2_scale, cy - 10*l2_scale); ctx2.stroke();
 
-        // 2. Body Clip
+        // 2. Cylinder Body & Liquid
         ctx2.save();
         ctx2.beginPath(); ctx2.rect(cx - cylW/2, cy - cylH, cylW, cylH - 10*l2_scale); ctx2.closePath(); ctx2.clip();
 
@@ -942,7 +923,7 @@
         ctx2.beginPath(); ctx2.moveTo(cx - cylW/2, cy - cylH); ctx2.quadraticCurveTo(cx - cylW/2 - 10*l2_scale, cy - cylH - 5*l2_scale, cx - cylW/2 - 15*l2_scale, cy - cylH - 15*l2_scale); 
         ctx2.moveTo(cx - cylW/2, cy - cylH); ctx2.bezierCurveTo(cx, cy - cylH + 10*l2_scale, cx + cylW/2, cy - cylH + 5*l2_scale, cx + cylW/2, cy - cylH); ctx2.stroke();
 
-        // Graduations (No Numbers)
+        // Graduations
         ctx2.fillStyle = "#475569";
         const gradStartY = cy - 30*l2_scale; const gradHeight = cylH * 0.8; const step = gradHeight / 10; 
         for (let i=1; i<=10; i++) {
@@ -950,49 +931,115 @@
             ctx2.beginPath(); ctx2.moveTo(cx - cylW/4, y); ctx2.lineTo(cx + cylW/4, y); ctx2.stroke();
         }
 
-        // Animation (Pouring)
+        // --- [수정됨] Animation Effect (Pouring) ---
         if (l2_mixing) {
             const item = L2_DATA[l2_selectedAdd];
-            const pourX = cx + 80*l2_scale; const pourY = cy - cylH - 80*l2_scale;
             
             if (item.kind === 'liquid') {
-                ctx2.save(); ctx2.translate(pourX, pourY); ctx2.rotate(-1.2); 
-                ctx2.fillStyle = "rgba(255,255,255,0.6)"; ctx2.strokeStyle = "#64748b"; ctx2.lineWidth = 2 * l2_scale;
-                const pcW = 50 * l2_scale; const pcH = 200 * l2_scale; 
-                ctx2.beginPath(); ctx2.rect(-pcW/2, -pcH, pcW, pcH); ctx2.fill(); ctx2.stroke();
-                ctx2.beginPath(); ctx2.ellipse(0, 0, pcW/1.5, 5*l2_scale, 0, 0, Math.PI*2); ctx2.stroke(); ctx2.fill();
-                ctx2.fillStyle = item.color; ctx2.fillRect(-pcW/2 + 2, -pcH + 20, pcW - 4, pcH - 40); 
+                // [수정] Pouring Liquid - Spout Alignment
+                // 붓는 실린더의 '주둥이'가 정확히 액체 줄기의 시작점이 되도록 좌표 설정
+                const spoutX = cx + 15*l2_scale; // 메인 실린더 입구 근처
+                const spoutY = cy - cylH - 40*l2_scale; // 메인 실린더 위쪽
+                
+                // Stream (먼저 그려서 실린더 뒤로 가거나 앞으로 오게 조정)
+                ctx2.fillStyle = "rgba(200, 210, 230, 0.5)";
+                ctx2.beginPath();
+                ctx2.moveTo(spoutX, spoutY);
+                // 낙하 궤적 (베지에 곡선)
+                ctx2.quadraticCurveTo(spoutX + 10*l2_scale, spoutY + 50*l2_scale, cx, currentY + 10*l2_scale);
+                ctx2.lineTo(cx + 12*l2_scale, currentY + 10*l2_scale); // 물줄기 두께
+                ctx2.quadraticCurveTo(spoutX + 20*l2_scale, spoutY + 50*l2_scale, spoutX + 8*l2_scale, spoutY + 5*l2_scale);
+                ctx2.fill();
+
+                // Pouring Cylinder (Lip-centric rotation)
+                ctx2.save();
+                ctx2.translate(spoutX, spoutY); // 주둥이를 회전축으로
+                ctx2.rotate(-2.2); // 많이 기울임 (약 120도)
+                
+                // 실린더 그리기 (원점(0,0)이 주둥이 끝이 되도록 배치)
+                ctx2.fillStyle = "rgba(255,255,255,0.7)";
+                ctx2.strokeStyle = "#64748b";
+                ctx2.lineWidth = 2 * l2_scale;
+                
+                const pcW = 40 * l2_scale; 
+                const pcH = 160 * l2_scale;
+                
+                // 원점(0,0)이 왼쪽 상단 모서리(주둥이)가 되도록 사각형 그림
+                // 주둥이 위치 보정
+                ctx2.beginPath();
+                ctx2.rect(0, 0, pcW, pcH); 
+                ctx2.fill();
+                ctx2.stroke();
+                
+                // Liquid inside pouring cylinder
+                ctx2.fillStyle = item.color;
+                // 기울어졌으니 수면은 수평이어야 함 -> 클리핑으로 처리하거나 간단히 채움
+                // 간단히: 바닥쪽 절반 채움
+                ctx2.fillRect(2, pcH/2, pcW-4, pcH/2 - 2);
+                
                 ctx2.restore();
 
-                ctx2.fillStyle = "rgba(200, 210, 230, 0.4)"; ctx2.beginPath();
-                const startX = pourX - 80*l2_scale; const startY = pourY - 10*l2_scale;
-                ctx2.moveTo(startX, startY);
-                ctx2.quadraticCurveTo(cx, startY + 100*l2_scale, cx, currentY + 20*l2_scale);
-                ctx2.lineTo(cx + 10*l2_scale, currentY + 20*l2_scale);
-                ctx2.quadraticCurveTo(cx + 10*l2_scale, startY + 100*l2_scale, startX + 15*l2_scale, startY + 5*l2_scale);
-                ctx2.fill();
             } else {
-                const spoonX = cx; const spoonY = cy - cylH - 30*l2_scale;
-                ctx2.save(); ctx2.translate(spoonX, spoonY); ctx2.rotate(0.4); 
-                ctx2.fillStyle = "#94a3b8"; ctx2.fillRect(0, -5*l2_scale, 100*l2_scale, 10*l2_scale);
-                ctx2.beginPath(); ctx2.ellipse(0, 0, 20*l2_scale, 12*l2_scale, 0, 0, Math.PI*2); ctx2.fill(); ctx2.stroke(); ctx2.restore();
+                // [수정] Solid Pouring - Spatula (약수저) Animation
+                const spoonTipX = cx;
+                const spoonTipY = cy - cylH - 40*l2_scale;
+                
+                // Draw Spatula
+                ctx2.save();
+                ctx2.translate(spoonTipX, spoonTipY);
+                ctx2.rotate(0.3); // 약간 기울임
+                
+                // 손잡이 & 몸체
+                ctx2.fillStyle = "#cbd5e1"; // Metal silver
+                ctx2.strokeStyle = "#94a3b8";
+                ctx2.lineWidth = 1;
+                
+                // Spoon bowl (오목한 부분)
+                ctx2.beginPath();
+                ctx2.ellipse(0, 0, 25*l2_scale, 8*l2_scale, 0, 0, Math.PI*2);
+                ctx2.fill();
+                ctx2.stroke();
+                
+                // Handle
+                ctx2.fillRect(20*l2_scale, -3*l2_scale, 100*l2_scale, 6*l2_scale);
+                
+                // Remaining powder on spoon
+                ctx2.fillStyle = item.color;
+                ctx2.beginPath();
+                ctx2.arc(5*l2_scale, -2*l2_scale, 5*l2_scale, 0, Math.PI, true);
+                ctx2.fill();
+                
+                ctx2.restore();
+
+                // Falling Powder (Particles)
                 ctx2.fillStyle = item.color;
                 const fallProgress = l2_progress / 100;
-                for(let i=0; i<15; i++) {
-                    let px = cx + (Math.random()-0.5)*20*l2_scale;
-                    let py = spoonY + fallProgress * (cylH) + Math.random()*50*l2_scale; 
-                    if(py < currentY) ctx2.fillRect(px, py, 3*l2_scale, 3*l2_scale);
+                
+                // 약수저 끝에서 가루가 떨어짐
+                for(let i=0; i<20; i++) {
+                    // Randomize start time for each particle to create stream
+                    if (Math.random() > 0.3) {
+                        let px = spoonTipX + (Math.random()-0.5)*10*l2_scale;
+                        let py = spoonTipY + Math.random() * (cy - spoonTipY) * (l2_progress/50); // fall down
+                        
+                        // Limit fall to bottom
+                        if (py > currentY) py = currentY + (Math.random()-0.5)*5;
+                        
+                        // Draw small square/circle for powder
+                        ctx2.fillRect(px, py, 3*l2_scale, 3*l2_scale);
+                    }
                 }
             }
         }
         
-        // Precipitate
+        // Precipitate (Sediment)
         if (!l2_mixing && l2_solidSediment) {
              const item = l2_solidSediment;
              ctx2.fillStyle = item.color;
              const seed = 12345; 
              for(let i=0; i<60; i++) { 
-                 let r1 = Math.abs(Math.sin(seed + i)); let r2 = Math.abs(Math.cos(seed + i * 13));
+                 let r1 = Math.abs(Math.sin(seed + i)); 
+                 let r2 = Math.abs(Math.cos(seed + i * 13));
                  let px = cx + (r1 - 0.5) * (cylW - 10*l2_scale);
                  let py = cy - 10*l2_scale - r2 * 15 * l2_scale; 
                  ctx2.fillRect(px, py, 3*l2_scale, 3*l2_scale);
@@ -1001,7 +1048,7 @@
              ctx2.fillText("녹지 않음", cx, cy + 30*l2_scale);
         }
         
-        // Labels
+        // Labels (Layer Names)
         if (!l2_mixing) {
             let labelY = cy - 10*l2_scale;
             l2_beakerState.forEach(layer => {
