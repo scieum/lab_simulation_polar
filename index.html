@@ -137,7 +137,7 @@
                 <button onclick="navigateTo('lab1')" class="menu-card bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-200 text-left group relative overflow-hidden h-72 flex flex-col justify-between shadow-sm hover:shadow-md">
                     <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div class="relative z-10">
-                        <span class="inline-block px-3 py-1 bg-white/50 border border-slate-100 text-slate-600 text-xs font-bold rounded-full mb-4">Physics / Chemistry</span>
+                        <span class="inline-block px-3 py-1 bg-white/50 border border-slate-100 text-slate-600 text-xs font-bold rounded-full mb-4">Chemistry</span>
                         <h2 class="text-2xl font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">Lab 1. 대전체와 액체</h2>
                         <p class="text-slate-500 text-sm leading-relaxed">정전기 유도 현상으로 인해 휘어지는 액체 줄기를 관찰합니다.</p>
                     </div>
@@ -198,8 +198,8 @@
                 <div class="clean-panel p-5 flex flex-col gap-3">
                     <div class="flex justify-between items-start">
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Step 1</span>
-                            <h1 class="text-xl font-extrabold text-slate-800 tracking-tight">실험 하기</h1>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lab 1</span>
+                            <h1 class="text-xl font-extrabold text-slate-800">대전체 상호작용</h1>
                         </div>
                         <button id="refillBtn" class="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold border border-slate-200 transition-colors shadow-sm">초기화</button>
                     </div>
@@ -240,6 +240,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- LAB 1: Quiz View -->
         <div id="lab1-quiz-view" class="hidden-screen w-full max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 p-8 flex-col items-center justify-center gap-10 fade-in min-h-[600px]">
@@ -577,7 +578,9 @@
                 for(let i=0; i<3; i++) {
                     l1_particles.push({
                         x: (330 + Math.random()*4 - 2), y: 360,
-                        vx: (Math.random()-0.5)*0.2, vy: 2 + Math.random(),
+                        vx: (Math.random()-0.5)*0.2, 
+                        // [수정] 낙하 속도 조절 (초기 속도를 느리게)
+                        vy: 1.5 + Math.random() * 0.5, 
                         color: `rgba(200, 210, 220, ${0.4+Math.random()*0.2})`,
                         force: liq.force, dead: false
                     });
@@ -590,7 +593,8 @@
         const objX = l1_chargedObj.x; const objY = l1_chargedObj.y;
         const flaskY = 560; const fillH = (l1_flaskVol/200) * 160; const surfaceY = flaskY - fillH;
         l1_particles.forEach(p => {
-            p.vy += 0.25; 
+            // [수정] 중력 가속도 조절 (천천히 떨어지게)
+            p.vy += 0.15; 
             if (p.force > 0) {
                 const dx = objX - p.x; const dy = objY - p.y;
                 const dSq = dx*dx + dy*dy;
