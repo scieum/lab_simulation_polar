@@ -203,13 +203,6 @@
                         </div>
                         <button id="refillBtn" class="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold border border-slate-200 transition-colors shadow-sm">초기화</button>
                     </div>
-                    <div class="flex items-center justify-between bg-slate-50 rounded-lg p-3 border border-slate-100">
-                        <span class="text-slate-500 text-xs font-bold">뷰렛 잔량</span>
-                        <div class="flex items-baseline gap-1">
-                            <span id="volDisplay" class="text-2xl font-mono font-bold text-slate-700 tracking-tighter">50.0</span>
-                            <span class="text-xs text-slate-400 font-bold">mL</span>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="clean-panel p-5">
@@ -217,7 +210,7 @@
                     <div class="grid grid-cols-3 gap-3 h-32">
                         <label class="cursor-pointer group relative h-full"><input type="radio" name="objectSelect" value="balloon" checked class="select-radio sr-only"><div class="h-full p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex flex-col justify-center items-center gap-2"><div class="flex-1 flex items-center justify-center"><div class="w-8 h-8 rounded-full bg-pink-400 indicator shadow-sm"></div></div><div class="w-full flex flex-col items-center gap-1 pb-1"><div class="text-xs font-bold text-slate-600 label-text leading-tight">풍선</div><div class="text-[10px] text-pink-500 font-medium leading-tight bg-pink-50 px-2 py-0.5 rounded-full">(-)전하</div></div></div></label>
                         <label class="cursor-pointer group relative h-full"><input type="radio" name="objectSelect" value="glass" class="select-radio sr-only"><div class="h-full p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex flex-col justify-center items-center gap-2"><div class="flex-1 flex items-center justify-center"><div class="w-10 h-2 rounded-full bg-blue-100 border border-slate-300 transform -rotate-45 indicator"></div></div><div class="w-full flex flex-col items-center gap-1 pb-1"><div class="text-xs font-bold text-slate-600 label-text leading-tight">유리막대</div><div class="text-[10px] text-blue-500 font-medium leading-tight bg-blue-50 px-2 py-0.5 rounded-full">(+)전하</div></div></div></label>
-                        <label class="cursor-pointer group relative h-full"><input type="radio" name="objectSelect" value="ebonite" class="select-radio sr-only"><div class="h-full p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex flex-col justify-center items-center gap-2"><div class="flex-1 flex items-center justify-center"><div class="w-10 h-2 rounded-full bg-slate-600 transform -rotate-45 indicator"></div></div><div class="w-full flex flex-col items-center gap-1 pb-1"><div class="text-xs font-bold text-slate-600 label-text leading-tight">에보나이트</div><div class="text-[10px] text-slate-500 font-medium leading-tight bg-slate-100 px-2 py-0.5 rounded-full">(-)전하</div></div></div></label>
+                        <label class="cursor-pointer group relative h-full"><input type="radio" name="objectSelect" value="ebonite" class="select-radio sr-only"><div class="h-full p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex flex-col justify-center items-center gap-2"><div class="flex-1 flex items-center justify-center"><div class="w-10 h-2 rounded-full bg-slate-600 transform -rotate-45 indicator"></div></div><div class="w-full flex flex-col items-center gap-1 pb-1"><div class="text-xs font-bold text-slate-600 label-text leading-tight">에보나이트 막대</div><div class="text-[10px] text-slate-500 font-medium leading-tight bg-slate-100 px-2 py-0.5 rounded-full">(-)전하</div></div></div></label>
                     </div>
                 </div>
 
@@ -347,10 +340,10 @@
                             </div>
                         </label>
                         <label class="cursor-pointer group relative">
-                            <input type="radio" name="soluteSelect" value="cuso4" class="l2-solu-radio select-radio sr-only">
+                            <input type="radio" name="soluteSelect" value="cucl2" class="l2-solu-radio select-radio sr-only">
                             <div class="h-full p-2.5 rounded-lg border border-slate-200 hover:border-slate-800 flex items-center justify-center gap-2">
-                                <div class="w-2 h-2 rounded-full bg-blue-600 indicator"></div>
-                                <div class="text-xs text-slate-500 font-bold label-text">황산구리</div>
+                                <div class="w-2 h-2 rounded-full bg-cyan-600 indicator"></div>
+                                <div class="text-xs text-slate-500 font-bold label-text">염화구리(II)</div>
                             </div>
                         </label>
                     </div>
@@ -521,21 +514,32 @@
 
     document.querySelectorAll('input[name="liquidSelect"]').forEach(el => el.addEventListener('change', e => l1_liquidKey = e.target.value));
     document.querySelectorAll('input[name="objectSelect"]').forEach(el => el.addEventListener('change', e => l1_objectKey = e.target.value));
+    
+    // [수정] 초기화 로직 분리
+    function resetLab1Sim() {
+        l1_isFlowing = false; l1_buretteVol = 50; l1_flaskVol = 0; l1_particles = [];
+        l1_chargedObj.x = 700 * 0.78; l1_chargedObj.y = 460;
+        const btn = document.getElementById('flowToggleBtn');
+        btn.innerHTML = `<div class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div><span class="relative">실험 시작 (Start)</span>`;
+        btn.classList.remove('bg-slate-700');
+        drawLab1();
+    }
+
     document.getElementById('flowToggleBtn').addEventListener('click', () => {
-        if (l1_buretteVol <= 0) return;
+        // [수정] 잔량이 없을 때 버튼 클릭 시 리셋(리필) 동작 수행
+        if (l1_buretteVol <= 0) {
+            resetLab1Sim();
+            return;
+        }
+
         l1_isFlowing = !l1_isFlowing;
         const btn = document.getElementById('flowToggleBtn');
         if(l1_isFlowing) { btn.innerHTML = `<span class="relative">실험 중지</span>`; btn.classList.add('bg-slate-700'); }
         else { btn.innerHTML = `<div class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div><span class="relative">실험 시작 (Start)</span>`; btn.classList.remove('bg-slate-700'); }
     });
-    document.getElementById('refillBtn').addEventListener('click', () => {
-        l1_isFlowing = false; l1_buretteVol = 50; l1_flaskVol = 0; l1_particles = [];
-        l1_chargedObj.x = 700 * 0.78; l1_chargedObj.y = 460;
-        document.getElementById('volDisplay').textContent = "50.0";
-        document.getElementById('flowToggleBtn').innerHTML = `<div class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div><span class="relative">실험 시작 (Start)</span>`;
-        document.getElementById('flowToggleBtn').classList.remove('bg-slate-700');
-        drawLab1();
-    });
+    
+    // [수정] 초기화 버튼이 공통 함수 사용
+    document.getElementById('refillBtn').addEventListener('click', resetLab1Sim);
 
     // Lab 1 Interaction
     function getL1Pos(e) {
@@ -572,29 +576,38 @@
     function updateLab1() {
         if (l1_isFlowing) {
             if (l1_buretteVol > 0) {
-                l1_buretteVol -= 0.1; l1_flaskVol += 0.1;
-                document.getElementById('volDisplay').textContent = l1_buretteVol.toFixed(1);
+                // Volume decrease speed: 0.1 -> 0.04 (Slower depletion)
+                l1_buretteVol -= 0.04; l1_flaskVol += 0.04;
+                // [수정] 잔량 텍스트 업데이트 코드 삭제
+                
                 const liq = L1_DATA.liquids[l1_liquidKey];
                 for(let i=0; i<3; i++) {
                     l1_particles.push({
                         x: (330 + Math.random()*4 - 2), y: 360,
                         vx: (Math.random()-0.5)*0.2, 
-                        // [수정] 낙하 속도 조절 (초기 속도를 느리게)
-                        vy: 1.5 + Math.random() * 0.5, 
+                        
+                        // Initial velocity: 1.5 -> 0.5 (Start slower)
+                        vy: 0.5 + Math.random() * 0.5, 
+                        
                         color: `rgba(200, 210, 220, ${0.4+Math.random()*0.2})`,
                         force: liq.force, dead: false
                     });
                 }
             } else {
                 l1_isFlowing = false;
-                document.getElementById('flowToggleBtn').innerHTML = `<span class="relative">실험 완료</span>`;
+                // [수정] 실험 완료 시 버튼 텍스트 변경
+                const btn = document.getElementById('flowToggleBtn');
+                btn.innerHTML = `<span class="relative">실험 완료 (다시 시작)</span>`;
+                btn.classList.remove('bg-slate-700');
             }
         }
         const objX = l1_chargedObj.x; const objY = l1_chargedObj.y;
         const flaskY = 560; const fillH = (l1_flaskVol/200) * 160; const surfaceY = flaskY - fillH;
         l1_particles.forEach(p => {
-            // [수정] 중력 가속도 조절 (천천히 떨어지게)
-            p.vy += 0.15; 
+            
+            // Gravity acceleration: 0.15 -> 0.05 (Fall slower)
+            p.vy += 0.05; 
+            
             if (p.force > 0) {
                 const dx = objX - p.x; const dy = objY - p.y;
                 const dSq = dx*dx + dy*dy;
@@ -740,7 +753,7 @@
         'hexane': { type: 'nonpolar', density: 0.66, color: 'rgba(200, 210, 230, 0.15)', name: '헥세인', kind: 'liquid' },
         'ccl4': { type: 'nonpolar', density: 1.59, color: 'rgba(200, 210, 230, 0.15)', name: '사염화탄소', kind: 'liquid' },
         'iodine': { type: 'nonpolar', density: 4.93, color: '#7e22ce', name: '아이오딘', kind: 'solid' }, // purple
-        'cuso4': { type: 'polar', density: 3.6, color: '#2563eb', name: '황산구리', kind: 'solid' } // blue
+        'cucl2': { type: 'polar', density: 3.4, color: '#0891b2', name: '염화구리(II)', kind: 'solid' } // teal/cyan
     };
 
     function resizeLab2() {
@@ -794,13 +807,15 @@
     function resetLab2() {
         l2_mixing = false;
         l2_progress = 0;
-        l2_layerState = 'none';
+        // l2_layerState removed as it was undefined
         l2_beakerState = []; // Completely empty
         l2_solidSediment = null; // Clear solid
         l2_isShaking = false;
         
         // Uncheck all solvent radios
         document.querySelectorAll('.l2-solv-radio').forEach(el => el.checked = false);
+        // [수정] Uncheck all solute radios (용질 선택 초기화)
+        document.querySelectorAll('.l2-solu-radio').forEach(el => el.checked = false);
         
         drawLab2();
     }
@@ -919,26 +934,19 @@
         ctx2.save();
         ctx2.resetTransform(); // Background static
         ctx2.scale(l2_scale * 700 / canvas2.width * window.devicePixelRatio, l2_scale * 700 / canvas2.width * window.devicePixelRatio); // normalize scale hack, actually resetTransform clears scale.
-        // Re-apply global scale if needed or draw static bg? 
-        // Just draw table relative to untransformed canvas bottom or static Y?
-        // For simplicity, draw table using transformed coords but remove offset? 
-        // Actually, table should stay static while beaker shakes.
-        // Let's draw table relative to *base* position without offset
         const staticCx = 350 * l2_scale;
         const staticCy = 520 * l2_scale;
         const staticTableY = staticCy + baseH/2;
         
-        // [수정] 흰색 배경 유지 (테이블 없음)
-        // Shadow
-        ctx2.fillStyle = "rgba(0, 0, 0, 0.1)"; ctx2.beginPath(); ctx2.ellipse(staticCx, staticTableY, baseW/1.8, baseH, 0, 0, Math.PI*2); ctx2.fill();
+        // [수정] 흰색 배경 유지 (테이블 없음, 그림자도 제거)
         ctx2.restore();
 
-        // 1. Cylinder Base
+        // [수정] 1. Cylinder Base - 받침대 다시 복원 (그림자는 제외)
         ctx2.fillStyle = "#e2e8f0"; ctx2.strokeStyle = "#94a3b8"; ctx2.lineWidth = 1;
         ctx2.beginPath(); ctx2.ellipse(cx, cy, baseW/2, baseH/2, 0, 0, Math.PI*2); ctx2.fill(); ctx2.stroke();
         ctx2.fillStyle = "#cbd5e1"; ctx2.beginPath(); ctx2.rect(cx - baseW/2, cy - 5*l2_scale, baseW, 10*l2_scale); ctx2.fill();
         ctx2.beginPath(); ctx2.moveTo(cx - cylW/2 - 5*l2_scale, cy - 10*l2_scale); ctx2.lineTo(cx + cylW/2 + 5*l2_scale, cy - 10*l2_scale); ctx2.stroke();
-
+        
         // 2. Body Clip
         ctx2.save();
         ctx2.beginPath(); ctx2.rect(cx - cylW/2, cy - cylH, cylW, cylH - 10*l2_scale); ctx2.closePath(); ctx2.clip();
@@ -972,6 +980,11 @@
 
         // --- Outline ---
         ctx2.strokeStyle = "#64748b"; ctx2.lineWidth = 2 * l2_scale; ctx2.lineJoin = 'round';
+        // Draw bottom curve manually since base is gone
+        ctx2.beginPath(); 
+        ctx2.ellipse(cx, cy - 10*l2_scale, cylW/2, 10*l2_scale, 0, 0, Math.PI); // Bottom curve
+        ctx2.stroke();
+
         ctx2.beginPath(); ctx2.moveTo(cx - cylW/2, cy - cylH); ctx2.lineTo(cx - cylW/2, cy - 10*l2_scale); ctx2.moveTo(cx + cylW/2, cy - cylH); ctx2.lineTo(cx + cylW/2, cy - 10*l2_scale); ctx2.stroke();
         ctx2.beginPath(); ctx2.moveTo(cx - cylW/2, cy - cylH); ctx2.quadraticCurveTo(cx - cylW/2 - 10*l2_scale, cy - cylH - 5*l2_scale, cx - cylW/2 - 15*l2_scale, cy - cylH - 15*l2_scale); 
         ctx2.moveTo(cx - cylW/2, cy - cylH); ctx2.bezierCurveTo(cx, cy - cylH + 10*l2_scale, cx + cylW/2, cy - cylH + 5*l2_scale, cx + cylW/2, cy - cylH); ctx2.stroke();
@@ -1065,7 +1078,7 @@
     const quizItemsL2 = [
         { id: 'q-water', name: '물', type: 'hydrophilic', formula: 'H₂O' },
         { id: 'q-ethanol', name: '에탄올', type: 'hydrophilic', formula: 'C₂H₅OH' },
-        { id: 'q-cuso4', name: '황산구리', type: 'hydrophilic', formula: 'CuSO₄' },
+        { id: 'q-cucl2', name: '염화구리(II)', type: 'hydrophilic', formula: 'CuCl₂' },
         { id: 'q-nacl', name: '염화나트륨', type: 'hydrophilic', formula: 'NaCl' },
         { id: 'q-sucrose', name: '설탕', type: 'hydrophilic', formula: 'C₁₂H₂₂O₁₁' },
         
@@ -1247,6 +1260,3 @@
 </script>
 </body>
 </html>
-
-
-
